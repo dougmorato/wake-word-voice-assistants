@@ -4,3 +4,4 @@ secrets.yaml
 */.gitignore
 !/.gitignore
 venv/
+tmp_m5gfx/
