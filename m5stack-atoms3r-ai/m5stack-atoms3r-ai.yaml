@@ -161,7 +161,7 @@ voice_assistant:
   auto_gain: 31dBFS
   volume_multiplier: 2.0
   on_listening:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id}
+    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
     - text_sensor.template.publish:
         id: text_request
         state: "..."
@@ -170,18 +170,18 @@ voice_assistant:
         state: "..."
     - script.execute: draw_display
   on_stt_vad_end:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id}
+    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
     - script.execute: draw_display
   on_stt_end:
     - text_sensor.template.publish:
         id: text_request
-        state: !lambda return x;
+        state: !lambda 'return x;'
     - script.execute: draw_display
   on_tts_start:
     - text_sensor.template.publish:
         id: text_response
-        state: !lambda return x;
-    - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id}
+        state: !lambda 'return x;'
+    - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
     - script.execute: draw_display
   on_end:
     - wait_until:
@@ -209,7 +209,7 @@ voice_assistant:
         id: text_response
         state: ""
   on_error:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id}
+    - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
     - script.execute: draw_display
     - delay: 1s
     - script.execute: set_idle_or_mute_phase
@@ -220,7 +220,7 @@ voice_assistant:
     - script.execute: draw_display
   on_client_disconnected:
     - script.execute: stop_wake_word
-    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id}
+    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
     - script.execute: draw_display
   on_timer_finished:
     - script.execute: stop_wake_word
