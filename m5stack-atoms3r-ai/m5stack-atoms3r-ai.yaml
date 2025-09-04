@@ -1,7 +1,30 @@
+# =============================================================================
+# M5Stack AtomS3R-AI Voice Assistant Configuration
+# =============================================================================
+# This configuration turns your M5Stack AtomS3R-AI into a smart voice assistant
+# that works with Home Assistant. It includes:
+# - Voice wake word detection ("okay nabu", "hey mycroft", "hey jarvis")
+# - Visual feedback on the built-in LCD screen
+# - Audio playback for responses and notifications
+# - Timer functionality with audio alerts
+# - Physical button controls
+# - WiFi connectivity with captive portal for easy setup
+#
+# The device can operate in two modes:
+# 1. On-device wake word detection (faster, works offline)
+# 2. Home Assistant wake word detection (more accurate, requires connection)
+# =============================================================================
+
+# =============================================================================
+# CONFIGURATION VARIABLES
+# =============================================================================
+# These variables define the basic settings and visual elements for your device.
+# You can customize the illustrations by replacing the URLs with your own images.
 substitutions:
   name: m5stack-atoms3r-ai
   friendly_name: M5Stack AtomS3R-AI
-  # Downscaled illustrations (128x128) hosted in your repo
+  # Visual illustrations displayed on the LCD screen during different states
+  # All images should be 128x128 pixels for optimal display quality
   loading_illustration_file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/casita/loading_128_128.png
   idle_illustration_file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/casita/idle_128_128.png
   listening_illustration_file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/casita/listening_128_128.png
@@ -10,6 +33,8 @@ substitutions:
   error_illustration_file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/casita/error_128_128.png
   timer_finished_illustration_file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/casita/timer_finished_128_128.png
 
+  # Background colors for each state (hexadecimal color codes)
+  # 000000 = black, FFFFFF = white - you can customize these colors
   loading_illustration_background_color: "000000"
   idle_illustration_background_color: "000000"
   listening_illustration_background_color: "FFFFFF"
@@ -17,6 +42,8 @@ substitutions:
   replying_illustration_background_color: "FFFFFF"
   error_illustration_background_color: "000000"
 
+  # Internal phase identifiers - these help the device know what state it's in
+  # You typically don't need to change these numbers
   voice_assist_idle_phase_id: "1"
   voice_assist_listening_phase_id: "2"
   voice_assist_thinking_phase_id: "3"
@@ -26,17 +53,29 @@ substitutions:
   voice_assist_muted_phase_id: "12"
   voice_assist_timer_finished_phase_id: "20"
 
+# =============================================================================
+# CORE DEVICE CONFIGURATION
+# =============================================================================
+# This section defines the basic ESP32 settings and device information.
+
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   min_version: 2025.5.0
   name_add_mac_suffix: true
+  # Device information that appears in Home Assistant
+  project:
+    name: "M5Stack.AtomS3R-AI"
+    version: "2.0.0"
+  # Actions to perform when the device starts up
   on_boot:
     priority: 600
     then:
       - display.page.show: initializing_page
       - component.update: atoms3r_lcd
 
+# ESP32-S3 microcontroller configuration
+# The S3 variant provides excellent performance for voice processing
 esp32:
   board: esp32-s3-devkitc-1
   flash_size: 8MB
@@ -48,24 +87,36 @@ esp32:
       CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
       CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
 
+# External RAM configuration - provides extra memory for audio processing
 psram:
   mode: octal
   speed: 80MHz
 
+# =============================================================================
+# COMMUNICATION & CONNECTIVITY
+# =============================================================================
+# These components handle logging, API access, updates, and network connectivity
+
+# Logging configuration - helps with debugging
 logger:
   hardware_uart: USB_SERIAL_JTAG
 
+# Home Assistant API - enables communication with your smart home system
 api:
   on_client_connected:
     - script.execute: draw_display
   on_client_disconnected:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
     - script.execute: draw_display
 
+# Over-the-air updates - allows you to update the firmware wirelessly
 ota:
   - platform: esphome
     id: ota_esphome
 
+# WiFi configuration - connects your device to your home network
+# The device will create a hotspot for initial setup if it can't connect
 wifi:
   ap:
   on_connect:
@@ -73,96 +124,125 @@ wifi:
   on_disconnect:
     - script.execute: draw_display
 
+# Captive portal - provides a web interface for WiFi setup when in AP mode
 captive_portal:
 
-# I2C bus used by ES8311 codec and IO expander on Atomic Echo Base
+# =============================================================================
+# HARDWARE INTERFACES
+# =============================================================================
+# These sections configure the physical connections to audio and display hardware
+
+# I2C bus - connects to the audio codec for configuration
+# GPIO38 = data line, GPIO39 = clock line
 i2c:
   sda: GPIO38
   scl: GPIO39
 
-# I2S bus (Atomic Echo Base)
+# I2S audio bus - high-quality digital audio interface
+# Connects the ESP32 to the audio codec for recording and playback
 i2s_audio:
   - id: i2s_bus
-    i2s_lrclk_pin: GPIO6    # WS/LRCK
-    i2s_bclk_pin: GPIO8     # BCLK/SCK
-    # MCLK is not used on the Echo Base (codec derives clock from BCLK)
+    i2s_lrclk_pin: GPIO6    # Left/Right clock - determines which audio channel
+    i2s_bclk_pin: GPIO8     # Bit clock - synchronizes audio data transfer
+    # Master clock not needed - codec generates its own timing
 
-# ES8311 codec (handles both DAC + mic ADC)
+# =============================================================================
+# AUDIO SYSTEM CONFIGURATION
+# =============================================================================
+# The audio system handles voice recording, playback, and processing
+
+# ES8311 audio codec - converts between digital and analog audio
+# This chip handles both the microphone input and speaker output
 audio_dac:
   - platform: es8311
     id: es8311_codec
-    sample_rate: 16000
-    bits_per_sample: 16bit
-    use_mclk: false
-    use_microphone: true
-    mic_gain: 0DB
+    sample_rate: 16000      # Audio quality - 16kHz is optimal for voice
+    bits_per_sample: 16bit  # Audio depth - 16-bit provides good quality
+    use_mclk: false         # Master clock not required for this setup
+    use_microphone: true    # Enable microphone input
+    mic_gain: 0DB           # Microphone sensitivity (0DB = no extra gain)
 
+# Microphone configuration - captures your voice commands
 microphone:
   - platform: i2s_audio
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO7      # ASDOUT (codec -> MCU)
-    adc_type: external
-    sample_rate: 16000
-    bits_per_sample: 16bit
+    i2s_din_pin: GPIO7      # Data input pin - audio from codec to ESP32
+    adc_type: external      # Use the external codec's analog-to-digital converter
+    sample_rate: 16000      # Must match codec sample rate
+    bits_per_sample: 16bit  # Must match codec bit depth
 
+# Speaker configuration - plays assistant responses and notifications
 speaker:
   - platform: i2s_audio
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO5     # SD/DSDIN (MCU -> codec)
-    dac_type: external
-    sample_rate: 16000
-    bits_per_sample: 16bit
-    channel: mono
-    audio_dac: es8311_codec
-    buffer_duration: 60ms
+    i2s_dout_pin: GPIO5     # Data output pin - audio from ESP32 to codec
+    dac_type: external      # Use the external codec's digital-to-analog converter
+    sample_rate: 16000      # Must match codec sample rate
+    bits_per_sample: 16bit  # Must match codec bit depth
+    channel: mono           # Single channel audio (not stereo)
+    audio_dac: es8311_codec # Link to the codec component
+    buffer_duration: 60ms   # Audio buffer size - larger = more stable playback
 
+# =============================================================================
+# VOICE ASSISTANT & MEDIA SYSTEM
+# =============================================================================
+# These components handle voice processing, wake words, and audio playback
+
+# Media player - handles audio file playback and announcements
 media_player:
   - platform: speaker
     id: media
-    name: None
-    codec_support_enabled: false
-    buffer_size: 6000
-    volume_min: 0.4
-    announcement_pipeline:
+    name: None                    # Hidden from Home Assistant interface
+    codec_support_enabled: false  # Disable codec support for simpler processing
+    buffer_size: 6000            # Audio buffer size in bytes
+    volume_min: 0.4              # Minimum volume level
+    announcement_pipeline:        # Settings for system announcements
       speaker: atoms3r_speaker
       format: WAV
       sample_rate: 16000
       num_channels: 1
-    files:
+    files:                       # Pre-loaded audio files
       - id: timer_finished_wave_file
         file: https://github.com/esphome/wake-word-voice-assistants/raw/main/sounds/timer_finished.wav
+    # Stop wake word detection during announcements to prevent interference
     on_announcement:
       - if:
           condition:
             - microphone.is_capturing:
           then:
             - script.execute: stop_wake_word
+    # Resume wake word detection after announcements finish
     on_idle:
       - script.execute: start_wake_word
 
+# On-device wake word detection - recognizes wake phrases locally
+# This runs entirely on the device without needing internet connectivity
 micro_wake_word:
   id: mww
   on_wake_word_detected:
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
-  vad:
-  models:
-    - model: okay_nabu
-    - model: hey_mycroft
-    - model: hey_jarvis
+  vad:                          # Voice Activity Detection - filters out background noise
+  models:                       # Available wake words - you can enable/disable these
+    - model: okay_nabu          # "Okay Nabu" - good general purpose wake word
+    - model: hey_mycroft        # "Hey Mycroft" - popular in open source community
+    - model: hey_jarvis         # "Hey Jarvis" - Iron Man inspired wake word
 
+# Voice Assistant - the main component that processes voice commands
+# This connects all the audio components together and handles the conversation flow
 voice_assistant:
   id: va
-  microphone: atoms3r_mic
-  media_player: media
-  micro_wake_word: mww
-  noise_suppression_level: 2
-  auto_gain: 31dBFS
-  volume_multiplier: 2.0
+  microphone: atoms3r_mic          # Use the configured microphone
+  media_player: media              # Use the configured media player for responses
+  micro_wake_word: mww             # Link to on-device wake word detection
+  noise_suppression_level: 2       # Reduce background noise (0-4, higher = more suppression)
+  auto_gain: 31dBFS               # Automatic volume adjustment for optimal recording
+  volume_multiplier: 2.0          # Response volume multiplier (adjustable by users)
   on_listening:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
     - text_sensor.template.publish:
         id: text_request
         state: "..."
@@ -171,7 +251,8 @@ voice_assistant:
         state: "..."
     - script.execute: draw_display
   on_stt_vad_end:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
     - script.execute: draw_display
   on_stt_end:
     - text_sensor.template.publish:
@@ -182,7 +263,8 @@ voice_assistant:
     - text_sensor.template.publish:
         id: text_response
         state: !lambda return x;
-    - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
     - script.execute: draw_display
   on_end:
     - wait_until:
@@ -211,7 +293,8 @@ voice_assistant:
         id: text_response
         state: ""
   on_error:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_error_phase_id};
     - script.execute: draw_display
     - delay: 1s
     - script.execute: set_idle_or_mute_phase
@@ -222,7 +305,8 @@ voice_assistant:
     - script.execute: draw_display
   on_client_disconnected:
     - script.execute: stop_wake_word
-    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
     - script.execute: draw_display
   on_timer_finished:
     - script.execute: stop_wake_word
@@ -231,22 +315,28 @@ voice_assistant:
           microphone.is_capturing:
     - switch.turn_on: timer_ringing
 
-switch:
-  - platform: template
-    id: timer_ringing
-    optimistic: true
-    restore_mode: ALWAYS_OFF
-    on_turn_off:
-      # Stop the announcement
-      - media_player.stop:
-          announcement: true
-    on_turn_on:
-      - media_player.speaker.play_on_device_media_file:
-          media_file: timer_finished_wave_file
-          announcement: true
-      - delay: 15min
-      - switch.turn_off: timer_ringing
+# =============================================================================
+# USER INTERFACE CONTROLS
+# =============================================================================
+# These components appear in Home Assistant for user control and monitoring
 
+# Volume control - allows users to adjust response volume
+number:
+  - platform: template
+    name: "Volume"
+    id: volume_control
+    entity_category: config
+    min_value: 0.1
+    max_value: 3.0
+    step: 0.1
+    initial_value: 2.0
+    optimistic: true
+    restore_value: true
+    on_value:
+      - lambda: |-
+          id(va).set_volume_multiplier(x);
+
+# Wake word processing location - choose between on-device or Home Assistant processing
 select:
   - platform: template
     entity_category: config
@@ -255,8 +345,8 @@ select:
     optimistic: true
     restore_value: true
     options:
-      - In Home Assistant
-      - On device
+      - In Home Assistant      # More accurate but requires good network connection
+      - On device             # Faster response but less accurate
     initial_option: On device
     on_value:
       - if:
@@ -276,64 +366,194 @@ select:
             - delay: 500ms
             - micro_wake_word.start:
 
+  # Microphone sensitivity control - adjust how sensitive the microphone is
+  - platform: template
+    name: "Microphone Gain"
+    id: mic_gain_select
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    options:
+      - "0DB"     # No additional gain (default)
+      - "6DB"     # Slight boost for quiet environments  
+      - "12DB"    # Medium boost for noisy environments
+      - "18DB"    # High boost for very noisy environments
+      - "24DB"    # Maximum boost (may cause distortion)
+    initial_option: "0DB"
+    # Note: Gain changes require device restart to take effect
+
+# =============================================================================
+# SWITCHES AND BUTTONS
+# =============================================================================
+# Physical and virtual controls for device management
+
+# Mute switch - disable voice assistant without disconnecting from network
+switch:
+  - platform: template
+    name: "Mute"
+    id: mute_switch
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - script.execute: stop_wake_word
+      - lambda: |-
+          id(voice_assistant_phase) = ${voice_assist_muted_phase_id};
+      - script.execute: draw_display
+    on_turn_off:
+      - script.execute: start_wake_word
+      - script.execute: set_idle_or_mute_phase
+      - script.execute: draw_display
+
+  # Timer alert switch - internal switch for managing timer notifications
+  - platform: template
+    id: timer_ringing
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    on_turn_off:
+      # Stop the timer sound when turned off
+      - media_player.stop:
+          announcement: true
+    on_turn_on:
+      # Play timer finished sound when timer completes
+      - media_player.speaker.play_on_device_media_file:
+          media_file: timer_finished_wave_file
+          announcement: true
+      # Auto-stop after 15 minutes if not manually stopped
+      - delay: 15min
+      - switch.turn_off: timer_ringing
+
+# Factory reset button - returns device to default settings
 button:
   - platform: factory_reset
     id: factory_reset_btn
     name: Factory reset
 
-# Front button (GPIO41) active low
+# =============================================================================
+# SENSORS AND DIAGNOSTICS
+# =============================================================================
+# Components that monitor device status and provide diagnostic information
+
+# WiFi signal strength - helps troubleshoot connectivity issues
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    entity_category: diagnostic
+    update_interval: 60s
+    id: wifi_signal_sensor
+  
+  # Device uptime - shows how long the device has been running
+  - platform: uptime
+    name: "Uptime"
+    entity_category: diagnostic
+    id: uptime_sensor
+
+# Physical button on the front of the device (GPIO41)
+# The button is "active low" meaning it reads LOW when pressed
 binary_sensor:
   - platform: gpio
     pin:
-      number: GPIO41
-      mode: INPUT_PULLUP
-      inverted: true
+      number: GPIO41            # Physical pin connected to the button
+      mode: INPUT_PULLUP        # Enable internal pull-up resistor
+      inverted: true            # Invert logic (LOW = pressed becomes HIGH = pressed)
     name: Button
-    disabled_by_default: true
-    entity_category: diagnostic
+    disabled_by_default: true   # Hide from main Home Assistant interface
+    entity_category: diagnostic # Show in diagnostic section only
     id: atoms3r_button
+    # Multi-click detection with debouncing to prevent accidental triggers
     on_multi_click:
+      # Single click (short press and release)
       - timing:
-          - ON for at least 50ms
-          - OFF for at least 50ms
+          - ON for at least 50ms    # Must be pressed for at least 50ms
+          - OFF for at least 50ms   # Must be released for at least 50ms
         then:
           - if:
               condition:
                 switch.is_on: timer_ringing
               then:
+                # If timer is ringing, stop it
                 - switch.turn_off: timer_ringing
               else:
+                # Otherwise, manually trigger wake word detection
                 - script.execute: start_wake_word
+      # Long press (10+ seconds) - factory reset
       - timing:
-          - ON for at least 10s
+          - ON for at least 10s     # Hold button for 10 seconds
         then:
           - button.press: factory_reset_btn
 
+# Network and device information sensors
+text_sensor:
+  # Last error message - helps with troubleshooting voice assistant issues
+  - platform: template
+    name: "Last Error"
+    id: last_error
+    entity_category: diagnostic
+
+  # Device IP address - useful for network troubleshooting
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      entity_category: diagnostic
+      id: ip_address_sensor
+
+  # Internal text sensors for storing conversation text (hidden from HA interface)
+  - id: text_request
+    platform: template
+    on_value:
+      lambda: |-
+        if(id(text_request).state.length()>16) {
+          std::string s = id(text_request).state.c_str();
+          std::string t = esphome::str_truncate(s.c_str(),15);
+          id(text_request).state = (t+"...").c_str();
+        }
+  - id: text_response
+    platform: template
+    on_value:
+      lambda: |-
+        if(id(text_response).state.length()>16) {
+          std::string s = id(text_response).state.c_str();
+          std::string t = esphome::str_truncate(s.c_str(),15);
+          id(text_response).state = (t+"...").c_str();
+        }
+
+# =============================================================================
+# DISPLAY SYSTEM
+# =============================================================================
+# The LCD screen and visual interface components
+
+# SPI bus configuration for the LCD display
+# SPI is a communication protocol for high-speed data transfer to the screen
 spi:
   - id: lcd_spi
-    clk_pin: GPIO15
-    mosi_pin: GPIO21
+    clk_pin: GPIO15             # Serial clock pin
+    mosi_pin: GPIO21            # Master Out Slave In (data to display)
 
+# Color definitions for different device states
+# These colors are used as backgrounds for the status illustrations
 color:
-  - id: idle_color
+  - id: idle_color          # Background when waiting for wake word
     hex: ${idle_illustration_background_color}
-  - id: listening_color
+  - id: listening_color     # Background when listening to user command
     hex: ${listening_illustration_background_color}
-  - id: thinking_color
+  - id: thinking_color      # Background when processing command
     hex: ${thinking_illustration_background_color}
-  - id: replying_color
+  - id: replying_color      # Background when speaking response
     hex: ${replying_illustration_background_color}
-  - id: loading_color
+  - id: loading_color       # Background during device startup
     hex: ${loading_illustration_background_color}
-  - id: error_color
+  - id: error_color         # Background when an error occurs
     hex: ${error_illustration_background_color}
 
+# Image assets for the display - these show the device's current state
+# All images are resized to 128x128 pixels to fit the display perfectly
 image:
+  # Error state illustration
   - file: ${error_illustration_file}
     id: casita_error
-    resize: 128x128
-    type: RGB
-    transparency: alpha_channel
+    resize: 128x128           # Fit to display size
+    type: RGB                 # Full color image
+    transparency: alpha_channel # Support transparent backgrounds
   - file: ${idle_illustration_file}
     id: casita_idle
     resize: 128x128
@@ -364,39 +584,45 @@ image:
     resize: 128x128
     type: RGB
     transparency: alpha_channel
+  # Network error illustrations
   - file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-wifi.png
-    id: error_no_wifi
+    id: error_no_wifi         # Shown when WiFi is disconnected
     resize: 128x128
     type: RGB
     transparency: alpha_channel
   - file: https://github.com/dougmorato/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-ha.png
-    id: error_no_ha
+    id: error_no_ha           # Shown when Home Assistant is disconnected
     resize: 128x128
     type: RGB
     transparency: alpha_channel
 
+# LCD display configuration - ST7789V controller with 128x128 resolution
 display:
   - platform: st7789v
     id: atoms3r_lcd
-    cs_pin: GPIO14
-    dc_pin: GPIO42
-    reset_pin: GPIO48
-    data_rate: 40MHz
-    model: CUSTOM
-    width: 128
-    height: 128
-    offset_width: 0
-    offset_height: 32
-    update_interval: never
+    cs_pin: GPIO14            # Chip select pin
+    dc_pin: GPIO42            # Data/command pin  
+    reset_pin: GPIO48         # Display reset pin
+    data_rate: 40MHz          # SPI communication speed
+    model: CUSTOM             # Custom display configuration
+    width: 128                # Display width in pixels
+    height: 128               # Display height in pixels
+    offset_width: 0           # Horizontal offset for display alignment
+    offset_height: 32         # Vertical offset for display alignment
+    update_interval: never    # Manual updates only (controlled by scripts)
+    # Different pages (screens) shown during different states
     pages:
+      # Idle state - shown when waiting for wake word
       - id: idle_page
         lambda: |-
           it.fill(id(idle_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
+      # Listening state - shown when actively listening to user
       - id: listening_page
         lambda: |-
           it.fill(id(listening_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_listening), ImageAlign::CENTER);
+      # Thinking state - shown when processing user command
       - id: thinking_page
         lambda: |-
           it.fill(id(thinking_color));
@@ -404,6 +630,7 @@ display:
           it.filled_rectangle(5 , 5 , 118 , 24 , Color::WHITE );
           it.rectangle(5 , 5 , 118 , 24 , Color::BLACK );
           it.printf(8, 10, id(font_tiny), Color::BLACK, "%s", id(text_request).state.c_str());
+      # Replying state - shown when assistant is speaking response
       - id: replying_page
         lambda: |-
           it.fill(id(replying_color));
@@ -414,82 +641,88 @@ display:
           it.rectangle(5 , 99 , 118 , 24 , Color::BLACK );
           it.printf(8, 10, id(font_tiny), Color::BLACK, "%s", id(text_request).state.c_str());
           it.printf(8, 104, id(font_tiny), Color::BLACK, "%s", id(text_response).state.c_str());
+      # Timer finished state - shown when a timer completes
       - id: timer_finished_page
         lambda: |-
           it.fill(id(idle_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_timer_finished), ImageAlign::CENTER);
+      # Error state - shown when voice assistant encounters an error
       - id: error_page
         lambda: |-
           it.fill(id(error_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_error), ImageAlign::CENTER);
+      # No Home Assistant connection - shown when HA API is disconnected
       - id: no_ha_page
         lambda: |-
           it.image((it.get_width() / 2), (it.get_height() / 2), id(error_no_ha), ImageAlign::CENTER);
+      # No WiFi connection - shown when network is disconnected
       - id: no_wifi_page
         lambda: |-
           it.image((it.get_width() / 2), (it.get_height() / 2), id(error_no_wifi), ImageAlign::CENTER);
+      # Initializing state - shown during device startup
       - id: initializing_page
         lambda: |-
           it.fill(id(loading_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_initializing), ImageAlign::CENTER);
+      # Muted state - shown when voice assistant is disabled
       - id: muted_page
         lambda: |-
           it.fill(Color::BLACK);
 
+# Font definitions for text display on screen
+# Google Fonts are downloaded automatically during compilation
 font:
-  - id: font_small
+  - id: font_small           # Larger text for main content
+    file:
+      type: gfonts           # Use Google Fonts
+      family: Figtree        # Clean, readable font family
+      weight: 400            # Regular weight
+    size: 16                 # 16 pixel font size
+  - id: font_tiny            # Smaller text for status information
     file:
       type: gfonts
       family: Figtree
-      weight: 400
-    size: 16
-  - id: font_tiny
-    file:
-      type: gfonts
-      family: Figtree
-      weight: 300
-    size: 12
+      weight: 300            # Light weight for subtlety
+    size: 12                 # 12 pixel font size
 
-text_sensor:
-  - id: text_request
-    platform: template
-    on_value:
-      lambda: |-
-        if(id(text_request).state.length()>16) {
-          std::string s = id(text_request).state.c_str();
-          std::string t = esphome::str_truncate(s.c_str(),15);
-          id(text_request).state = (t+"...").c_str();
-        }
-  - id: text_response
-    platform: template
-    on_value:
-      lambda: |-
-        if(id(text_response).state.length()>16) {
-          std::string s = id(text_response).state.c_str();
-          std::string t = esphome::str_truncate(s.c_str(),15);
-          id(text_response).state = (t+"...").c_str();
-        }
+# =============================================================================
+# INTERNAL SYSTEM COMPONENTS
+# =============================================================================
+# These components manage the device's internal state and behavior
 
+# Global variable to track the current voice assistant state
+# This helps coordinate between different components and the display
 globals:
   - id: voice_assistant_phase
-    type: int
-    restore_value: false
-    initial_value: ${voice_assist_not_ready_phase_id}
+    type: int                  # Integer type to store phase ID numbers
+    restore_value: false       # Don't save across reboots (start fresh each time)
+    initial_value: ${voice_assist_not_ready_phase_id}  # Start in "not ready" state
 
+# =============================================================================
+# AUTOMATION SCRIPTS
+# =============================================================================
+# These scripts coordinate device behavior and display updates
+
+# Script to set the device to idle state (ready for wake word)
 script:
   - id: set_idle_or_mute_phase
     then:
-      - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+      - lambda: |-
+          id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+  # Script to update the display based on current device state
+  # This is called whenever the device state changes
   - id: draw_display
     then:
+      # Check network connectivity first
       - if:
           condition:
-            wifi.connected:
+            wifi.connected:           # Is WiFi connected?
           then:
             - if:
                 condition:
-                  api.connected:
+                  api.connected:        # Is Home Assistant connected?
                 then:
+                  # Device is fully connected - show appropriate page based on current phase
                   - lambda: |
                       switch(id(voice_assistant_phase)) {
                         case ${voice_assist_listening_phase_id}:
@@ -530,8 +763,10 @@ script:
           else:
             - display.page.show: no_wifi_page
             - component.update: atoms3r_lcd
+  # Script to start wake word detection based on user's preference
   - id: start_wake_word
     then:
+      # Check if user wants on-device wake word detection
       - if:
           condition:
             and:
@@ -542,6 +777,7 @@ script:
           then:
             - lambda: id(va).set_use_wake_word(false);
             - micro_wake_word.start:
+      # Check if user wants Home Assistant wake word detection  
       - if:
           condition:
             and:
@@ -552,6 +788,7 @@ script:
           then:
             - lambda: id(va).set_use_wake_word(true);
             - voice_assistant.start_continuous:
+  # Script to stop wake word detection (used during announcements or when muted)
   - id: stop_wake_word
     then:
       - if:
