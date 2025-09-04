@@ -143,9 +143,10 @@ media_player:
       - script.execute: start_wake_word
 
 micro_wake_word:
+  id: mww
   on_wake_word_detected:
     - voice_assistant.start:
-        wake_word: !lambda return wake_word;
+        wake_word: !lambda 'return wake_word;'
   vad:
   models:
     - model: okay_nabu
@@ -156,12 +157,13 @@ voice_assistant:
   id: va
   microphone: atoms3r_mic
   media_player: media
-  micro_wake_word:
+  micro_wake_word: mww
   noise_suppression_level: 2
   auto_gain: 31dBFS
   volume_multiplier: 2.0
   on_listening:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
     - text_sensor.template.publish:
         id: text_request
         state: "..."
@@ -170,7 +172,8 @@ voice_assistant:
         state: "..."
     - script.execute: draw_display
   on_stt_vad_end:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
     - script.execute: draw_display
   on_stt_end:
     - text_sensor.template.publish:
@@ -181,7 +184,8 @@ voice_assistant:
     - text_sensor.template.publish:
         id: text_response
         state: !lambda 'return x;'
-    - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
     - script.execute: draw_display
   on_end:
     - wait_until:
@@ -209,7 +213,8 @@ voice_assistant:
         id: text_response
         state: ""
   on_error:
-    - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_error_phase_id};
     - script.execute: draw_display
     - delay: 1s
     - script.execute: set_idle_or_mute_phase
@@ -220,7 +225,8 @@ voice_assistant:
     - script.execute: draw_display
   on_client_disconnected:
     - script.execute: stop_wake_word
-    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - lambda: |-
+        id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
     - script.execute: draw_display
   on_timer_finished:
     - script.execute: stop_wake_word
