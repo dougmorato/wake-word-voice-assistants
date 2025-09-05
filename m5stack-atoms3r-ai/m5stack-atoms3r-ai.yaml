@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.4-color-fix"
+    version: "2.1.5-static-fix"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -193,7 +193,9 @@ speaker:
     audio_dac: es8311_codec # Link to the ES8311 codec component
     sample_rate: 44100      # Match ES8311 codec sample rate
     bits_per_sample: 16bit  # Match ES8311 codec bit depth
-    buffer_duration: 100ms  # Audio buffer for stable playback
+    channel: left           # Use left channel only to reduce static
+    buffer_duration: 500ms  # Larger buffer to prevent static/clicking
+    timeout: 2s             # Longer timeout for stable playback
 
 # =============================================================================
 # VOICE ASSISTANT & MEDIA SYSTEM
@@ -206,8 +208,8 @@ media_player:
     id: media
     name: None                    # Hidden from Home Assistant interface
     codec_support_enabled: false  # Disable codec support for simpler processing
-    buffer_size: 6000            # Audio buffer size in bytes
-    volume_min: 0.4              # Minimum volume level
+    buffer_size: 12000           # Larger buffer to reduce static/clicking 
+    volume_min: 0.1              # Lower minimum volume to reduce static
     announcement_pipeline:        # Settings for system announcements
       speaker: atoms3r_speaker
       format: WAV
@@ -501,7 +503,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.4 - Avatar Display & Color Fix"};
+      return {"Config v2.1.5 - Static Fix & Display Update"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
@@ -629,7 +631,8 @@ display:
     height: 128               # Display height in pixels
     offset_width: 0           # Horizontal offset for display alignment
     offset_height: 32         # Vertical offset for display alignment
-    update_interval: never    # Manual updates only (controlled by scripts)
+    update_interval: 1s       # Regular updates to ensure display refresh
+    invert_colors: false      # Try normal colors first (change to true if inverted)
     # Different pages (screens) shown during different states
     # Simple avatar display - basic test pattern to verify display is working
     lambda: |-
