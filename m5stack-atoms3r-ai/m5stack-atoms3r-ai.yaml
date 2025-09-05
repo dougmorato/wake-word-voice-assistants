@@ -75,7 +75,9 @@ esphome:
   on_boot:
     priority: 600
     then:
-      - display.page.show: initializing_page
+      # Set initial voice assistant state and update display
+      - lambda: |-
+          id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
       - component.update: atoms3r_lcd
 
 # ESP32-S3 microcontroller configuration
