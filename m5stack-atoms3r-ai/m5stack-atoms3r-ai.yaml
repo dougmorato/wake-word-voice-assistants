@@ -152,17 +152,17 @@ i2s_audio:
 # =============================================================================
 # The audio system handles voice recording, playback, and processing
 
-# ES8311 audio codec - converts between digital and analog audio
-# This chip handles both the microphone input and speaker output
-audio_dac:
-  - platform: es8311
-    id: es8311_codec
-    address: 0x18           # Explicit I2C address for ES8311 codec
-    sample_rate: 16000      # Audio quality - 16kHz is optimal for voice
-    bits_per_sample: 16bit  # Audio depth - 16-bit provides good quality
-    use_mclk: false         # Atomic Echo Base doesn't use master clock
-    use_microphone: true    # Enable microphone input
-    mic_gain: 42DB          # Microphone sensitivity (42DB = default gain)
+# Note: ES8311 codec temporarily disabled due to MCLK configuration issues
+# Using direct I2S audio without external codec for now
+# audio_dac:
+#   - platform: es8311
+#     id: es8311_codec
+#     address: 0x18
+#     sample_rate: 16000
+#     bits_per_sample: 16bit
+#     use_mclk: false
+#     use_microphone: true
+#     mic_gain: 42DB
 
 # Microphone configuration - captures your voice commands
 # Pin verified from M5Stack official AtomS3R-AI pinmap
@@ -171,7 +171,7 @@ microphone:
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
     i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
-    adc_type: external      # Use the external codec's analog-to-digital converter
+    adc_type: internal      # Use ESP32-S3 internal ADC (temporary workaround)
     sample_rate: 16000      # Must match codec sample rate
     bits_per_sample: 16bit  # Must match codec bit depth
 
@@ -182,12 +182,12 @@ speaker:
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
     i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec (official pinmap)
-    dac_type: external      # Use the external codec's digital-to-analog converter
-    sample_rate: 16000      # Must match codec sample rate
-    bits_per_sample: 16bit  # Must match codec bit depth
-    channel: mono           # Single channel audio (not stereo)
-    audio_dac: es8311_codec # Link to the codec component
-    buffer_duration: 60ms   # Audio buffer size - larger = more stable playback
+    dac_type: internal      # Use ESP32-S3 internal DAC (temporary workaround)
+    sample_rate: 16000      # Sample rate for voice
+    bits_per_sample: 16bit  # Audio bit depth
+    channel: mono           # Single channel audio
+    # audio_dac: es8311_codec # Codec temporarily disabled
+    buffer_duration: 60ms   # Audio buffer size
 
 # =============================================================================
 # VOICE ASSISTANT & MEDIA SYSTEM
@@ -617,63 +617,74 @@ display:
     offset_height: 32         # Vertical offset for display alignment
     update_interval: never    # Manual updates only (controlled by scripts)
     # Different pages (screens) shown during different states
-    pages:
-      # Idle state - shown when waiting for wake word
-      - id: idle_page
-        lambda: |-
-          it.fill(id(idle_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
-      # Listening state - shown when actively listening to user
-      - id: listening_page
-        lambda: |-
-          it.fill(id(listening_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_listening), ImageAlign::CENTER);
-      # Thinking state - shown when processing user command
-      - id: thinking_page
-        lambda: |-
-          it.fill(id(thinking_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_thinking), ImageAlign::CENTER);
-          it.filled_rectangle(5 , 5 , 118 , 24 , Color::WHITE );
-          it.rectangle(5 , 5 , 118 , 24 , Color::BLACK );
-          it.printf(8, 10, id(font_tiny), Color::BLACK, "%s", id(text_request).state.c_str());
-      # Replying state - shown when assistant is speaking response
-      - id: replying_page
-        lambda: |-
-          it.fill(id(replying_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_replying), ImageAlign::CENTER);
-          it.filled_rectangle(5 , 5 , 118 , 24 , Color::WHITE );
-          it.rectangle(5 , 5 , 118 , 24 , Color::BLACK );
-          it.filled_rectangle(5 , 99 , 118 , 24 , Color::WHITE );
-          it.rectangle(5 , 99 , 118 , 24 , Color::BLACK );
-          it.printf(8, 10, id(font_tiny), Color::BLACK, "%s", id(text_request).state.c_str());
-          it.printf(8, 104, id(font_tiny), Color::BLACK, "%s", id(text_response).state.c_str());
-      # Timer finished state - shown when a timer completes
-      - id: timer_finished_page
-        lambda: |-
-          it.fill(id(idle_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_timer_finished), ImageAlign::CENTER);
-      # Error state - shown when voice assistant encounters an error
-      - id: error_page
-        lambda: |-
-          it.fill(id(error_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_error), ImageAlign::CENTER);
-      # No Home Assistant connection - shown when HA API is disconnected
-      - id: no_ha_page
-        lambda: |-
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(error_no_ha), ImageAlign::CENTER);
-      # No WiFi connection - shown when network is disconnected
-      - id: no_wifi_page
-        lambda: |-
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(error_no_wifi), ImageAlign::CENTER);
-      # Initializing state - shown during device startup
-      - id: initializing_page
-        lambda: |-
-          it.fill(id(loading_color));
-          it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_initializing), ImageAlign::CENTER);
-      # Muted state - shown when voice assistant is disabled
-      - id: muted_page
-        lambda: |-
-          it.fill(Color::BLACK);
+    # Simple avatar display with animated face based on voice assistant state
+    lambda: |-
+      // Clear screen with background color based on state
+      Color bg_color;
+      int eye_size = 8;
+      int mouth_width = 20;
+      int mouth_height = 8;
+      
+      // Background colors and expressions for different states
+      if (id(voice_assistant_phase) == ${voice_assist_listening_phase_id}) {
+        bg_color = Color(0, 150, 255);  // Blue when listening
+        eye_size = 12;  // Bigger eyes when listening
+      } else if (id(voice_assistant_phase) == ${voice_assist_thinking_phase_id}) {
+        bg_color = Color(255, 165, 0);  // Orange when thinking
+        eye_size = 6;   // Smaller eyes when processing
+      } else if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
+        bg_color = Color(0, 255, 0);    // Green when speaking
+        mouth_height = 15;  // Bigger mouth when talking
+      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
+        bg_color = Color(255, 0, 0);    // Red on error
+        eye_size = 4;   // Small eyes for error
+      } else if (id(voice_assistant_phase) == ${voice_assist_muted_phase_id}) {
+        bg_color = Color::BLACK;        // Black when muted
+        eye_size = 2;   // Tiny eyes when muted
+      } else {
+        bg_color = Color(100, 100, 255); // Light blue when idle
+      }
+      
+      it.fill(bg_color);
+      
+      // Draw simple avatar face
+      int center_x = it.get_width() / 2;
+      int center_y = it.get_height() / 2;
+      
+      // Face circle (head)
+      it.filled_circle(center_x, center_y, 45, Color::WHITE);
+      it.circle(center_x, center_y, 45, Color::BLACK);
+      
+      // Eyes
+      it.filled_circle(center_x - 15, center_y - 10, eye_size, Color::BLACK);
+      it.filled_circle(center_x + 15, center_y - 10, eye_size, Color::BLACK);
+      
+      // Mouth - varies based on state
+      if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
+        // Open mouth when speaking
+        it.filled_rectangle(center_x - mouth_width/2, center_y + 10, mouth_width, mouth_height, Color::BLACK);
+      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
+        // Sad mouth for errors
+        it.circle(center_x, center_y + 20, 10, Color::BLACK);
+      } else {
+        // Small smile for other states
+        it.filled_rectangle(center_x - mouth_width/2, center_y + 15, mouth_width, 3, Color::BLACK);
+      }
+      
+      // Show status text at bottom
+      if (id(voice_assistant_phase) == ${voice_assist_listening_phase_id}) {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Listening...");
+      } else if (id(voice_assistant_phase) == ${voice_assist_thinking_phase_id}) {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Thinking...");
+      } else if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Speaking...");
+      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Error");
+      } else if (id(voice_assistant_phase) == ${voice_assist_muted_phase_id}) {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Muted");
+      } else {
+        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Ready");
+      }
 
 # Font definitions for text display on screen
 # Google Fonts are downloaded automatically during compilation
@@ -719,56 +730,25 @@ script:
   # This is called whenever the device state changes
   - id: draw_display
     then:
-      # Check network connectivity first
+      # Set voice assistant state based on connectivity
       - if:
           condition:
-            wifi.connected:           # Is WiFi connected?
+            not:
+              wifi.connected:
           then:
-            - if:
-                condition:
-                  api.connected:        # Is Home Assistant connected?
-                then:
-                  # Device is fully connected - show appropriate page based on current phase
-                  - lambda: |
-                      switch(id(voice_assistant_phase)) {
-                        case ${voice_assist_listening_phase_id}:
-                          id(atoms3r_lcd).show_page(listening_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_thinking_phase_id}:
-                          id(atoms3r_lcd).show_page(thinking_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_replying_phase_id}:
-                          id(atoms3r_lcd).show_page(replying_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_error_phase_id}:
-                          id(atoms3r_lcd).show_page(error_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_muted_phase_id}:
-                          id(atoms3r_lcd).show_page(muted_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_not_ready_phase_id}:
-                          id(atoms3r_lcd).show_page(no_ha_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        case ${voice_assist_timer_finished_phase_id}:
-                          id(atoms3r_lcd).show_page(timer_finished_page);
-                          id(atoms3r_lcd).update();
-                          break;
-                        default:
-                          id(atoms3r_lcd).show_page(idle_page);
-                          id(atoms3r_lcd).update();
-                      }
-                else:
-                  - display.page.show: no_ha_page
-                  - component.update: atoms3r_lcd
-          else:
-            - display.page.show: no_wifi_page
-            - component.update: atoms3r_lcd
+            - lambda: |-
+                id(voice_assistant_phase) = ${voice_assist_error_phase_id};
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - not:
+                  api.connected:
+          then:
+            - lambda: |-
+                id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+      # Update the display with current state
+      - component.update: atoms3r_lcd
   # Script to start wake word detection based on user's preference
   - id: start_wake_word
     then:
