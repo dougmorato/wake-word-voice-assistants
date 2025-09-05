@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.3-mixed-rates"
+    version: "2.1.4-color-fix"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -501,7 +501,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.3 - Avatar Display & Mixed Sample Rate"};
+      return {"Config v2.1.4 - Avatar Display & Color Fix"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
@@ -634,25 +634,25 @@ display:
     # Simple avatar display - basic test pattern to verify display is working
     lambda: |-
       // Fill with bright color to verify display is working
-      it.fill(Color::BLUE);
+      it.fill(Color(0, 0, 255));  // Blue background
       
       // Draw simple test pattern
       int center_x = it.get_width() / 2;   // 64
       int center_y = it.get_height() / 2;  // 64
       
       // Large white circle for visibility
-      it.filled_circle(center_x, center_y, 40, Color::WHITE);
-      it.circle(center_x, center_y, 40, Color::BLACK);
+      it.filled_circle(center_x, center_y, 40, Color(255, 255, 255));  // White
+      it.circle(center_x, center_y, 40, Color(0, 0, 0));  // Black border
       
       // Simple eyes
-      it.filled_circle(center_x - 12, center_y - 8, 6, Color::BLACK);
-      it.filled_circle(center_x + 12, center_y - 8, 6, Color::BLACK);
+      it.filled_circle(center_x - 12, center_y - 8, 6, Color(0, 0, 0));  // Black
+      it.filled_circle(center_x + 12, center_y - 8, 6, Color(0, 0, 0));  // Black
       
       // Simple mouth
-      it.filled_rectangle(center_x - 10, center_y + 10, 20, 3, Color::BLACK);
+      it.filled_rectangle(center_x - 10, center_y + 10, 20, 3, Color(0, 0, 0));  // Black
       
       // Test text
-      it.printf(center_x, center_y + 30, id(font_small), Color::BLACK, TextAlign::CENTER, "HELLO");
+      it.printf(center_x, center_y + 30, id(font_small), Color(0, 0, 0), TextAlign::CENTER, "HELLO");
 
 # Font definitions for text display on screen
 # Google Fonts are downloaded automatically during compilation
