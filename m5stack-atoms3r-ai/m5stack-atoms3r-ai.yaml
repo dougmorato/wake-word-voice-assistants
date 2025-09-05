@@ -144,7 +144,7 @@ i2s_audio:
   - id: i2s_bus
     i2s_lrclk_pin: GPIO6    # Left/Right clock - determines which audio channel
     i2s_bclk_pin: GPIO8     # Bit clock - synchronizes audio data transfer
-    # Master clock not needed - codec generates its own timing
+    i2s_mclk_pin: GPIO2     # Master clock - required for M5Stack AtomS3R-AI
 
 # =============================================================================
 # AUDIO SYSTEM CONFIGURATION
@@ -158,7 +158,7 @@ audio_dac:
     id: es8311_codec
     sample_rate: 16000      # Audio quality - 16kHz is optimal for voice
     bits_per_sample: 16bit  # Audio depth - 16-bit provides good quality
-    use_mclk: false         # Master clock not required for this setup
+    use_mclk: true          # Master clock required for M5Stack AtomS3R-AI
     use_microphone: true    # Enable microphone input
     mic_gain: 0DB           # Microphone sensitivity (0DB = no extra gain)
 
