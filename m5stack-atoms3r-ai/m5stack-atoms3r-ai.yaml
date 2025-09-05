@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.2-es8311-44khz"
+    version: "2.1.3-mixed-rates"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -179,8 +179,8 @@ microphone:
     i2s_audio_id: i2s_bus
     i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
     adc_type: external      # Use the ES8311 codec's analog-to-digital converter
-    sample_rate: 44100      # Match ES8311 codec sample rate
-    bits_per_sample: 16bit  # Match ES8311 codec bit depth
+    sample_rate: 16000      # Required 16kHz for micro_wake_word component
+    bits_per_sample: 16bit  # Standard bit depth
 
 # Speaker configuration - plays assistant responses and notifications
 # Uses the ES8311 codec on the Atomic Echo Base for high-quality audio output
@@ -501,7 +501,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.2 - Avatar Display & ES8311 44.1kHz Config"};
+      return {"Config v2.1.3 - Avatar Display & Mixed Sample Rate"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
