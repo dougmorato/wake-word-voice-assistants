@@ -139,13 +139,13 @@ i2c:
   scl: GPIO39
 
 # I2S audio bus - high-quality digital audio interface
-# Connects the ESP32 to the audio codec for recording and playback
-# Pin configuration verified from M5Stack official source code
+# Connects the ESP32 to the Atomic Echo Base for recording and playback
+# Pin configuration verified from M5Stack official AtomS3R-AI pinmap
 i2s_audio:
   - id: i2s_bus
-    i2s_lrclk_pin: GPIO3    # Word Select (WS) - Left/Right clock from M5Stack source
-    i2s_bclk_pin: GPIO17    # Bit Clock (BCK) - synchronizes audio data transfer
-    i2s_mclk_pin: GPIO11    # Master Clock (MCK) - required for AtomS3R-AI codec
+    i2s_lrclk_pin: GPIO6    # WS/LRCK - Word Select from official pinmap
+    i2s_bclk_pin: GPIO8     # SCK/SCLK - Bit Clock from official pinmap
+    # No MCLK - Atomic Echo Base doesn't use master clock
 
 # =============================================================================
 # AUDIO SYSTEM CONFIGURATION
@@ -159,28 +159,28 @@ audio_dac:
     id: es8311_codec
     sample_rate: 16000      # Audio quality - 16kHz is optimal for voice
     bits_per_sample: 16bit  # Audio depth - 16-bit provides good quality
-    use_mclk: true          # Master clock required for M5Stack AtomS3R-AI
+    use_mclk: false         # Atomic Echo Base doesn't use master clock
     use_microphone: true    # Enable microphone input
     mic_gain: 0DB           # Microphone sensitivity (0DB = no extra gain)
 
 # Microphone configuration - captures your voice commands
-# Pin verified from M5Stack official source code
+# Pin verified from M5Stack official AtomS3R-AI pinmap
 microphone:
   - platform: i2s_audio
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO4      # Data input pin - audio from codec to ESP32 (M5Stack source)
+    i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
     adc_type: external      # Use the external codec's analog-to-digital converter
     sample_rate: 16000      # Must match codec sample rate
     bits_per_sample: 16bit  # Must match codec bit depth
 
 # Speaker configuration - plays assistant responses and notifications
-# Pin verified from M5Stack official source code
+# Pin verified from M5Stack official AtomS3R-AI pinmap
 speaker:
   - platform: i2s_audio
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO48    # Data output pin - audio from ESP32 to codec (M5Stack source)
+    i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec (official pinmap)
     dac_type: external      # Use the external codec's digital-to-analog converter
     sample_rate: 16000      # Must match codec sample rate
     bits_per_sample: 16bit  # Must match codec bit depth
@@ -527,11 +527,11 @@ text_sensor:
 
 # SPI bus configuration for the LCD display
 # SPI is a communication protocol for high-speed data transfer to the screen
-# Pin configuration verified from M5GFX AtomDisplay source code
+# Pin configuration verified from M5Stack official AtomS3R-AI pinmap
 spi:
   - id: lcd_spi
-    clk_pin: GPIO7              # SCLK - Serial clock pin (M5GFX source)
-    mosi_pin: GPIO6             # MOSI - Master Out Slave In (data to display)
+    clk_pin: GPIO15             # SPI_SCK - Serial clock pin (official pinmap)
+    mosi_pin: GPIO21            # SPI_MOSI - Master Out Slave In (official pinmap)
 
 # Color definitions for different device states
 # These colors are used as backgrounds for the status illustrations
@@ -601,13 +601,13 @@ image:
     transparency: alpha_channel
 
 # LCD display configuration - ST7789V controller with 128x128 resolution
-# Pin configuration verified from M5GFX AtomDisplay source code
+# Pin configuration verified from M5Stack official AtomS3R-AI pinmap
 display:
   - platform: st7789v
     id: atoms3r_lcd
-    cs_pin: GPIO8             # Chip select pin (M5GFX source)
-    dc_pin: GPIO42            # Data/command pin (assumed, needs verification)
-    reset_pin: GPIO5          # Display reset pin (MISO from M5GFX, repurposed)
+    cs_pin: GPIO14            # DISP_CS - Chip select pin (official pinmap)
+    dc_pin: GPIO42            # DISP_RS - Data/command pin (official pinmap)
+    reset_pin: GPIO48         # DISP_RST - Display reset pin (official pinmap)
     data_rate: 40MHz          # SPI communication speed
     model: CUSTOM             # Custom display configuration
     width: 128                # Display width in pixels
