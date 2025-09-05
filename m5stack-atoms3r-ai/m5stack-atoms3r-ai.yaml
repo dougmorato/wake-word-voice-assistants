@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.1-es8311-defaults"
+    version: "2.1.2-es8311-44khz"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -143,6 +143,8 @@ captive_portal:
 i2c:
   sda: GPIO38
   scl: GPIO39
+  frequency: 100kHz  # Standard I2C frequency for ES8311
+  scan: true         # Enable I2C device scanning
 
 # I2S audio bus - high-quality digital audio interface
 # Connects the ESP32 to the Atomic Echo Base for recording and playback
@@ -163,10 +165,11 @@ i2s_audio:
 audio_dac:
   - platform: es8311
     id: es8311_codec
-    address: 0x18           # I2C address for ES8311 codec
-    use_mclk: false         # Atomic Echo Base doesn't provide MCLK
-    use_microphone: true    # Enable microphone input
-    # Let ESPHome use default sample rate and bit depth to avoid MCLK calculation issues
+    address: 0x18           # I2C address for ES8311 codec (confirmed from I2C scan)
+    sample_rate: 44100      # Try standard audio sample rate
+    bits_per_sample: 16bit  # Standard bit depth
+    use_mclk: false         # Atomic Echo Base uses I2S without MCLK
+    use_microphone: true    # Enable microphone functionality
 
 # Microphone configuration - captures your voice commands
 # Uses the ES8311 codec on the Atomic Echo Base for high-quality audio input
@@ -176,7 +179,8 @@ microphone:
     i2s_audio_id: i2s_bus
     i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
     adc_type: external      # Use the ES8311 codec's analog-to-digital converter
-    # Use default sample rate and bit depth to match codec defaults
+    sample_rate: 44100      # Match ES8311 codec sample rate
+    bits_per_sample: 16bit  # Match ES8311 codec bit depth
 
 # Speaker configuration - plays assistant responses and notifications
 # Uses the ES8311 codec on the Atomic Echo Base for high-quality audio output
@@ -187,7 +191,9 @@ speaker:
     i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec (official pinmap)
     dac_type: external      # Use the ES8311 codec's digital-to-analog converter
     audio_dac: es8311_codec # Link to the ES8311 codec component
-    # Use default sample rate, bit depth, and buffer settings to match codec
+    sample_rate: 44100      # Match ES8311 codec sample rate
+    bits_per_sample: 16bit  # Match ES8311 codec bit depth
+    buffer_duration: 100ms  # Audio buffer for stable playback
 
 # =============================================================================
 # VOICE ASSISTANT & MEDIA SYSTEM
@@ -495,7 +501,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.1 - Avatar Display & ES8311 Default Config"};
+      return {"Config v2.1.2 - Avatar Display & ES8311 44.1kHz Config"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"

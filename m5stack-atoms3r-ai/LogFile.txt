@@ -1,0 +1,238 @@
+[22:23:31]I (202) esp_image: segment 1: paddr=000fc2d0 vaddr=3fc9ca00 size[I][logger:165]: Log initialized
+[22:23:31][C][safe_mode:082]: There have been 0 suspected unsuccessful boot attempts
+[22:23:31][D][esp32.preferences:142]: Writing 1 items: 0 cached, 1 written, 0 failed
+[22:23:31][I][app:090]: Running through setup()
+[22:23:31][I][i2c.idf:191]: Performing bus recovery
+[22:23:31][C][component:164]: Setup i2c took 33ms
+[22:23:31][C][component:164]: Setup spi took 0ms
+[22:23:31][C][component:164]: Setup preferences took 0ms
+[22:23:31][D][number:012]: 'Vo[C][component:164]: Setup display took 422ms
+[22:23:31][I][speaker_media_player:109]: Set up speaker media player
+[22:23:31][C][component:164]: Setup speaker.media_player took 7ms
+[22:23:31][C][component:164]: Setup web_server_base took 0ms
+[22:23:31][C][component:164]: Setup captive_portal took 0ms
+[22:23:31][C][wifi:060]: Starting
+[22:23:31][C][wifi:060]:  Local MAC: B4:3A:45:BD:DE:74
+[22:23:31][D][wifi:507]: Starting scan
+[22:23:31][C][component:164]: Setup wifi took 54ms
+[22:23:31][W][micro_wake_word:343]: Wake word detection can't start as the component hasn't been setup yet
+[22:23:31][W][component:289]: wifi set Warning flag: scanning for networks
+[22:23:31][D][sensor:103]: 'Uptime': Sending state 1.72200 s with 0 decimals of accuracy
+[22:23:32][D][text_sensor:069]: 'Configuration Version': Sending state 'Config v2.1.1 - Avatar Display & ES8311 Default Config'
+[22:23:33][D][esp32.preferences:142]: Writing 2 items: 0 cached, 2 written, 0 failed
+[22:23:33][D][wifi:576]: Found networks:
+[22:23:33][I][wifi:599]: - 'IOT' [redacted]▂▄▆█
+[22:23:33][D][wifi:601]:     Channel: 11
+[22:23:33][D][wifi:601]:    RSSI: -64 dB
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][D][wifi:606]: - [redacted] [redacted]▂▄▆█
+[22:23:33][I][wifi:329]: Connecting to 'IOT'
+[22:23:36][I][wifi:675]: Connected
+[22:23:36][C][wifi:444]:   Local MAC: B4:3A:45:BD:DE:74
+[22:23:36][C][wifi:449]:   SSID: [redacted]
+[22:23:36][C][wifi:452]:   IP Address: 192.168.169.131
+[22:23:36][C][wifi:456]:   BSSID: [redacted]
+[22:23:36][C][wifi:456]:  Hostname: 's3rai100-bdde74'
+[22:23:36][C][wifi:456]:  Signal strength: -61 dB ▂▄▆█
+[22:23:36][C][wifi:467]:   Channel: 11
+[22:23:36][C][wifi:467]:  Subnet: 255.255.254.0
+[22:23:36][C][wifi:467]:  Gateway: 192.168.168.1
+[22:23:36][C][wifi:467]:  DNS1: 192.168.168.1
+[22:23:36][C][wifi:467]:  DNS2: 0.0.0.0
+[22:23:36][D][wifi:689]: Disabling AP
+[22:23:36][C][component:164]: Setup esphome.ota took 0ms
+[22:23:36][C][component:164]: Setup safe_mode took 0ms
+[22:23:36][C][component:164]: Setup web_server.ota took 0ms
+[22:23:36][W][component:289]: api set Warning flag: unspecified
+[22:23:36][C][component:164]: Setup api took 2ms
+[22:23:36][C][component:164]: Setup wifi_signal.sensor took 0ms
+[22:23:36][C][component:164]: Setup wifi_info.text_sensor took 0ms
+[22:23:36][C][component:164]: Setup mdns took 2ms
+[22:23:36][C][component:164]: Setup micro_wake_word took 0ms
+[22:23:36][C][component:164]: Setup voice_assistant took 0ms
+[22:23:36][I][app:135]: setup() finished successfully!
+[22:23:36][W][component:317]: wifi cleared Warning flag
+[22:23:36][W][component:423]: wifi took a long time for an operation (94 ms)
+[22:23:36][W][component:424]: Components should block for at most 30 ms
+[22:23:36][I][app:200]: ESPHome version 2025.8.3 compiled on Sep  4 2025, 22:18:08
+[22:23:36][I][app:202]: Project M5Stack.AtomS3R-AI version 2.1.1-es8311-defaults
+[22:23:36][C][wifi:661]: WiFi:
+[22:23:36][C][wifi:444]:   Local MAC: B4:3A:45:BD:DE:74
+[22:23:36][C][wifi:449]:   SSID: [redacted]
+[22:23:36][C][wifi:452]:   IP Address: 192.168.169.131
+[22:23:36][C][wifi:456]:   BSSID: [redacted]
+[22:23:36][C][wifi:456]:  Hostname: 's3rai100-bdde74'
+[22:23:36][C][wifi:456]:  Signal strength: -61 dB ▂▄▆█
+[22:23:36][C][wifi:467]:   Channel: 11
+[22:23:36][C][wifi:467]:  Subnet: 255.255.254.0
+[22:23:36][C][wifi:467]:  Gateway: 192.168.168.1
+[22:23:36][C][wifi:467]:  DNS1: 192.168.168.1
+[22:23:36][C][wifi:467]:  DNS2: 0.0.0.0
+[22:23:36][C][logger:252]: Logger:
+[22:23:36][C][logger:252]:  Max Level: DEBUG
+[22:23:36][C][logger:252]:  Initial Level: DEBUG
+[22:23:36][C][logger:258]:   Log Baud Rate: 115200
+[22:23:36][C][logger:258]:  Hardware UART: USB_SERIAL_JTAG
+[22:23:36][C][logger:265]:   Task Log Buffer Size: 768
+[22:23:36][C][i2c.idf:081]: I2C Bus:
+[22:23:36][C][i2c.idf:082]:   SDA Pin: GPIO38
+[22:23:36][C][i2c.idf:082]:  SCL Pin: GPIO39
+[22:23:36][C][i2c.idf:082]:  Frequency: 50000 Hz
+[22:23:36][C][i2c.idf:092]:   Recovery: bus successfully recovered
+[22:23:36][C][i2c.idf:102]: Results from bus scan:
+[22:23:36][C][i2c.idf:108]: Found device at address 0x18
+[22:23:36][C][i2c.idf:108]: Found device at address 0x43
+[22:23:36][C][spi:067]: SPI bus:
+[22:23:36][C][spi:068]:   CLK Pin: GPIO15
+[22:23:36][C][spi:069]:   SDI Pin: 
+[22:23:36][C][spi:070]:   SDO Pin: GPIO21
+[22:23:36][C][spi:075]:   Using HW SPI: SPI2_HOST
+[22:23:36][C][template.number:050]: Template Number 'Volume'
+[22:23:36][C][template.number:051]:   Optimistic: YES
+[22:23:36][C][template.number:052]:   Update Interval: 60.0s
+[22:23:36][C][template.select:064]: Template Select 'Wake word engine location'
+[22:23:36][C][template.select:065]:   Update Interval: 60.0s
+[22:23:36][C][template.select:068]:   Optimistic: YES
+[22:23:36][C][template.select:068]:  Initial Option: On device
+[22:23:36][C][template.select:068]:  Restore Value: YES
+[22:23:36][C][template.select:064]: Template Select 'Microphone Gain'
+[22:23:36][C][template.select:065]:   Update Interval: 60.0s
+[22:23:36][C][template.select:068]:   Optimistic: YES
+[22:23:36][C][template.select:068]:  Initial Option: 0DB
+[22:23:36][C][template.select:068]:  Restore Value: YES
+[22:23:36][C][uptime.sensor:032]: Uptime Sensor 'Uptime'
+[22:23:36][C][uptime.sensor:032]:  State Class: 'total_increasing'
+[22:23:36][C][uptime.sensor:032]:  Unit of Measurement: 's'
+[22:23:36][C][uptime.sensor:032]:  Accuracy Decimals: 0
+[22:23:36][C][uptime.sensor:032]:   Device Class: 'duration'
+[22:23:36][C][uptime.sensor:032]:   Icon: 'mdi:timer-outline'
+[22:23:36][C][uptime.sensor:033]:   Type: Seconds
+[22:23:36][C][template.text_sensor:020]: Template Sensor 'Configuration Version'
+[22:23:36][C][template.text_sensor:020]:   Icon: 'mdi:information-outline'
+[22:23:36][C][template.text_sensor:020]: Template Sensor 'Last Error'
+[22:23:36][C][template.text_sensor:020]: Template Sensor 'text_request'
+[22:23:36][C][template.text_sensor:020]: Template Sensor 'text_response'
+[22:23:37][C][gpio.binary_sensor:052]: GPIO Binary Sensor 'Button'
+[22:23:37][C][gpio.binary_sensor:053]:   Pin: GPIO41
+[22:23:37][C][gpio.binary_sensor:055]:   Mode: interrupt
+[22:23:37][C][gpio.binary_sensor:072]:   Interrupt Type: ANY_EDGE
+[22:23:37][C][template.switch:087]: Template Switch 'timer_ringing'
+[22:23:37][C][template.switch:087]:  Restore Mode: always OFF
+[22:23:37][C][template.switch:057]:   Optimistic: YES
+[22:23:37][C][template.switch:087]: Template Switch 'Mute'
+[22:23:37][C][template.switch:087]:  Restore Mode: restore defaults to OFF
+[22:23:37][C][template.switch:057]:   Optimistic: YES
+[22:23:37][C][psram:016]: PSRAM:
+[22:23:37][C][psram:019]:   Available: YES
+[22:23:37][C][psram:021]:   Size: 8192 KB
+[22:23:37][C][es8311:053]: ES8311 Audio Codec:
+[22:23:37][C][es8311:053]:  Use MCLK: NO
+[22:23:37][C][es8311:053]:  Use Microphone: YES
+[22:23:37][C][es8311:053]:  DAC Bits per Sample: 16
+[22:23:37][C][es8311:053]:  Sample Rate: 16000
+[22:23:37][C][es8311:062]:   Failed to initialize!
+[22:23:37][E][component:145]:   es8311.audio_dac is marked FAILED: unspecified
+[22:23:37][C][i2s_audio.microphone:079]: Microphone:
+[22:23:37][C][i2s_audio.microphone:079]:  Pin: 7
+[22:23:37][C][i2s_audio.microphone:079]:  PDM: NO
+[22:23:37][C][i2s_audio.microphone:079]:  DC offset correction: NO
+[22:23:37][C][factory_reset.button:011]: Factory Reset Button 'Factory reset'
+[22:23:37][C][factory_reset.button:011]:   Icon: 'mdi:restart-alert'
+[22:23:37][D][text_sensor:069]: 'IP Address': Sending state '192.168.169.131'
+[22:23:37][C][i2s_audio.speaker:074]: Speaker:
+[22:23:37][C][i2s_audio.speaker:074]:  Pin: 5
+[22:23:37][C][i2s_audio.speaker:074]:  Buffer duration: 500
+[22:23:37][C][i2s_audio.speaker:080]:   Timeout: 500 ms
+[22:23:37][C][i2s_audio.speaker:088]:   Communication format: std
+[22:23:37][C][st7789v:123]: SPI ST7789V
+[22:23:37][C][st7789v:123]:  Rotations: 0 °
+[22:23:37][C][st7789v:123]:  Dimensions: 128px x 128px
+[22:23:37][C][st7789v:124]:   Model: CUSTOM
+[22:23:37][C][st7789v:124]:  Height: 128
+[22:23:37][C][st7789v:124]:  Width: 128
+[22:23:37][C][st7789v:124]:  Height Offset: 32
+[22:23:37][C][st7789v:124]:  Width Offset: 0
+[22:23:37][C][st7789v:124]:  8-bit color mode: NO
+[22:23:37][C][st7789v:133]:   CS Pin: GPIO14
+[22:23:37][C][st7789v:134]:   DC Pin: GPIO42
+[22:23:37][C][st7789v:135]:   Reset Pin: GPIO48
+[22:23:37][C][st7789v:137]:   Update Interval: never
+[22:23:37][C][st7789v:138]:   Data rate: 40MHz
+[22:23:37][C][captive_portal:099]: Captive Portal:
+[22:23:37][C][esphome.ota:075]: Over-The-Air updates:
+[22:23:37][C][esphome.ota:075]:  Address: s3rai100.local:3232
+[22:23:37][C][esphome.ota:075]:  Version: 2
+[22:23:37][C][esphome.ota:082]:   Password configured
+[22:23:37][C][safe_mode:018]: Safe Mode:
+[22:23:37][C][safe_mode:019]:   Boot considered successful after 60 seconds
+[22:23:37][C][safe_mode:019]:  Invoke after 10 boot attempts
+[22:23:37][C][safe_mode:019]:  Remain for 300 seconds
+[22:23:37][C][web_server.ota:224]: Web Server OTA
+[22:23:37][C][api:205]: Server:
+[22:23:37][C][api:205]:  Address: s3rai100.local:6053
+[22:23:37][C][api:210]:   Noise encryption: YES
+[22:23:37][C][wifi_signal.sensor:010]: WiFi Signal 'WiFi Signal'
+[22:23:37][C][wifi_signal.sensor:010]:  State Class: 'measurement'
+[22:23:37][C][wifi_signal.sensor:010]:  Unit of Measurement: 'dBm'
+[22:23:37][C][wifi_signal.sensor:010]:  Accuracy Decimals: 0
+[22:23:37][C][wifi_signal.sensor:010]:   Device Class: 'signal_strength'
+[22:23:37][C][wifi_info:010]: IP Address 'IP Address'
+[22:23:37][C][mdns:124]: mDNS:
+[22:23:37][C][mdns:124]:  Hostname: s3rai100-bdde74
+[22:23:37][C][micro_wake_word:064]: microWakeWord:
+[22:23:37][C][micro_wake_word:065]:   models:
+[22:23:37][C][micro_wake_word:014]:     - Wake Word: Okay Nabu
+[22:23:37][C][micro_wake_word:014]:      Probability cutoff: 0.97
+[22:23:37][C][micro_wake_word:014]:      Sliding window size: 5
+[22:23:37][C][micro_wake_word:014]:     - Wake Word: Hey Mycroft
+[22:23:37][C][micro_wake_word:014]:      Probability cutoff: 0.95
+[22:23:37][C][micro_wake_word:014]:      Sliding window size: 5
+[22:23:37][C][micro_wake_word:014]:     - Wake Word: Hey Jarvis
+[22:23:37][C][micro_wake_word:014]:      Probability cutoff: 0.97
+[22:23:37][C][micro_wake_word:014]:      Sliding window size: 5
+[22:23:37][C][micro_wake_word:022]:     - VAD Model
+[22:23:37][C][micro_wake_word:022]:      Probability cutoff: 0.50
+[22:23:37][C][micro_wake_word:022]:      Sliding window size: 5
+[22:23:37][D][api:144]: Accept 192.168.168.3
+[22:23:37][W][component:317]: api cleared Warning flag
+[22:23:37][D][api.connection:1341]: Home Assistant 2025.8.1 (192.168.168.3) connected
+[22:23:37][W][component:423]: api took a long time for an operation (101 ms)
+[22:23:37][W][component:424]: Components should block for at most 30 ms
+[22:23:37][D][sensor:103]: 'WiFi Signal': Sending state -60.00000 dBm with 0 decimals of accuracy
+[22:23:37][D][micro_wake_word:357]: Starting wake word detection
+[22:23:37][D][micro_wake_word:375]: State changed from STOPPED to STARTING
+[22:23:37][D][micro_wake_word:258]: Inference task has started, attempting to allocate memory for buffers
+[22:23:37][D][micro_wake_word:263]: Inference task is running
+[22:23:37][D][micro_wake_word:375]: State changed from STARTING to DETECTING_WAKE_WORD
+[22:23:37][D][ring_buffer:034][mww]: Created ring buffer with size 3840
+[22:24:28][D][binary_sensor:026]: 'Button': New state is ON
+[22:24:28][D][binary_sensor:026]: 'Button': New state is OFF
+[22:24:28][W][micro_wake_word:353]: Wake word detection is already running
+[22:24:29][D][binary_sensor:026]: 'Button': New state is ON
+[22:24:29][D][binary_sensor:026]: 'Button': New state is OFF
+[22:24:29][W][micro_wake_word:353]: Wake word detection is already running
+[22:24:30][I][safe_mode:042]: Boot seems successful; resetting boot loop counter
+[22:24:30][D][esp32.preferences:142]: Writing 1 items: 0 cached, 1 written, 0 failed
+[22:24:30][D][binary_sensor:026]: 'Button': New state is ON
+[22:24:30][D][binary_sensor:026]: 'Button': New state is OFF
+[22:24:31][W][micro_wake_word:353]: Wake word detection is already running
+[22:24:31][D][sensor:103]: 'Uptime': Sending state 61.72600 s with 0 decimals of accuracy
+[22:24:31][D][binary_sensor:026]: 'Button': New state is ON
+[22:24:32][D][text_sensor:069]: 'Configuration Version': Sending state 'Config v2.1.1 - Avatar Display & ES8311 Default Config'
+[22:24:32][D][binary_sensor:026]: 'Button': New state is OFF
+[22:24:32][W][micro_wake_word:353]: Wake word detection is already running
+[22:24:33][D][binary_sensor:026]: 'Button': New state is ON
+[22:24:33][D][binary_sensor:026]: 'Button': New state is OFF
+[22:24:33][W][micro_wake_word:353]: Wake word detection is already running
+[22:24:37][D][sensor:103]: 'WiFi Signal': Sending state -61.00000 dBm with 0 decimals of accuracy
+[22:25:31][D][sensor:103]: 'Uptime': Sending state 121.73400 s with 0 decimals of accuracy
+[22:25:32][D][text_sensor:069]: 'Configuration Version': Sending state 'Config v2.1.1 - Avatar Display & ES8311 Default Config'
+[22:25:37][D][sensor:103]: 'WiFi Signal': Sending state -62.00000 dBm with 0 decimals of accuracy
+[22:26:11][D][binary_sensor:026]: 'Button': New state is ON
+[22:26:11][D][binary_sensor:026]: 'Button': New state is OFF
+[22:26:11][W][micro_wake_word:353]: Wake word detection is already running
