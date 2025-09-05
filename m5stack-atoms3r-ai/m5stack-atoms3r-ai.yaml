@@ -45,8 +45,10 @@ esphome:
   on_boot:
     priority: 600
     then:
-      # Enable backlight on startup
+      # Enable backlight on startup and force display update
       - light.turn_on: display_backlight
+      - delay: 1s
+      - component.update: atoms3r_lcd
 
 # ESP32-S3 microcontroller configuration
 # The S3 variant provides excellent performance for voice processing
@@ -77,10 +79,6 @@ logger:
 
 # Home Assistant API - enables communication with your smart home system
 api:
-  on_client_connected:
-    - micro_wake_word.start:
-  on_client_disconnected:
-    - micro_wake_word.stop:
 
 # Over-the-air updates - allows you to update the firmware wirelessly
 ota:
@@ -108,98 +106,77 @@ i2c:
   frequency: 100kHz  # Standard I2C frequency for ES8311
   scan: true         # Enable I2C device scanning
 
-# I2S audio bus - high-quality digital audio interface
-# Connects the ESP32 to the Atomic Echo Base for recording and playback
-# Pin configuration verified from M5Stack official AtomS3R-AI pinmap
-i2s_audio:
-  - id: i2s_bus
-    i2s_lrclk_pin: GPIO6    # WS/LRCK - Word Select from official pinmap
-    i2s_bclk_pin: GPIO8     # SCK/SCLK - Bit Clock from official pinmap
-    # No MCLK - Atomic Echo Base doesn't use master clock
+# I2S audio bus - temporarily disabled to fix display first
+# i2s_audio:
+#   - id: i2s_bus
+#     i2s_lrclk_pin: GPIO6
+#     i2s_bclk_pin: GPIO8
 
 # =============================================================================
 # AUDIO SYSTEM CONFIGURATION
 # =============================================================================
 # The audio system handles voice recording, playback, and processing
 
-# ES8311 audio codec - converts between digital and analog audio
-# Simplified configuration to reduce static
-audio_dac:
-  - platform: es8311
-    id: es8311_codec
-    address: 0x18           # I2C address for ES8311 codec
-    sample_rate: 16000      # Match microphone sample rate to reduce conflicts
-    bits_per_sample: 16bit  # Standard bit depth
-    use_mclk: false         # Atomic Echo Base uses I2S without MCLK
-    use_microphone: false   # Disable to prevent constant audio stream
-    mic_gain: 0DB           # Minimal gain
+# ES8311 audio codec - completely disabled to prevent MCLK issues
+# Will re-enable after fixing I2S configuration
+# audio_dac:
+#   - platform: es8311
+#     id: es8311_codec
+#     address: 0x18
+#     sample_rate: 44100
+#     bits_per_sample: 16bit
+#     use_mclk: false
+#     use_microphone: false
 
-# Microphone configuration - captures your voice commands
-# Uses the ES8311 codec on the Atomic Echo Base for high-quality audio input
-microphone:
-  - platform: i2s_audio
-    id: atoms3r_mic
-    i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
-    adc_type: external      # Use the ES8311 codec's analog-to-digital converter
-    sample_rate: 16000      # Required 16kHz for micro_wake_word component
-    bits_per_sample: 16bit  # Standard bit depth
+# All audio components temporarily disabled to focus on display fix
+# Will re-enable once display is working
 
-# Speaker configuration - simplified to reduce static
-speaker:
-  - platform: i2s_audio
-    id: atoms3r_speaker
-    i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec
-    dac_type: external      # Use the ES8311 codec's digital-to-analog converter
-    audio_dac: es8311_codec # Link to the ES8311 codec component
-    sample_rate: 16000      # Match simplified sample rate
-    bits_per_sample: 16bit  # Standard bit depth
-    channel: left           # Use left channel only
-    buffer_duration: 100ms  # Smaller buffer to reduce latency
-    timeout: 1s             # Shorter timeout
+# microphone:
+#   - platform: i2s_audio
+#     id: atoms3r_mic
+#     i2s_audio_id: i2s_bus
+#     i2s_din_pin: GPIO7
+#     adc_type: external
+#     sample_rate: 16000
+#     bits_per_sample: 16bit
 
-# =============================================================================
-# VOICE ASSISTANT & MEDIA SYSTEM
-# =============================================================================
-# These components handle voice processing, wake words, and audio playback
+# speaker:
+#   - platform: i2s_audio
+#     id: atoms3r_speaker
+#     i2s_audio_id: i2s_bus  
+#     i2s_dout_pin: GPIO5
+#     dac_type: external
+#     sample_rate: 16000
+#     bits_per_sample: 16bit
 
-# Media player - simplified configuration
-media_player:
-  - platform: speaker
-    id: media
-    name: "Voice Assistant"
-    announcement_pipeline:
-      speaker: atoms3r_speaker
+# media_player:
+#   - platform: speaker
+#     id: media
+#     name: "Voice Assistant"
 
-# Simplified wake word detection
-micro_wake_word:
-  id: mww
-  microphone: atoms3r_mic
-  on_wake_word_detected:
-    - voice_assistant.start:
-        wake_word: !lambda return wake_word;
-  models:
-    - model: okay_nabu
+# micro_wake_word:
+#   id: mww
+#   microphone: atoms3r_mic
+#   models:
+#     - model: okay_nabu
 
-# Simplified voice assistant
-voice_assistant:
-  id: va
-  microphone: atoms3r_mic
-  media_player: media
-  micro_wake_word: mww
+# voice_assistant:
+#   id: va
+#   microphone: atoms3r_mic
+#   media_player: media
+#   micro_wake_word: mww
 
-# Basic controls
-switch:
-  - platform: template
-    name: "Mute"
-    id: mute_switch
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - micro_wake_word.stop:
-    on_turn_off:
-      - micro_wake_word.start:
+# Basic controls - audio temporarily disabled
+# switch:
+#   - platform: template
+#     name: "Mute"
+#     id: mute_switch
+#     optimistic: true
+#     restore_mode: RESTORE_DEFAULT_OFF
+#     on_turn_on:
+#       - micro_wake_word.stop:
+#     on_turn_off:
+#       - micro_wake_word.start:
 
 # Basic diagnostics
 button:
@@ -277,13 +254,17 @@ display:
     cs_pin: GPIO14              # DISP_CS - Chip select (M5Stack AtomS3R pinmap)
     dc_pin: GPIO42              # DISP_RS - Data/command (M5Stack AtomS3R pinmap)
     reset_pin: GPIO48           # DISP_RST - Reset (M5Stack AtomS3R pinmap)
-    update_interval: 60s
+    update_interval: 5s     # More frequent updates to see changes
     lambda: |-
-      // Simple test display to verify functionality
-      it.fill(id(test_color));
-      it.printf(64, 32, id(font_small), Color(255, 255, 255), TextAlign::CENTER, "AtomS3R");
-      it.printf(64, 64, id(font_small), Color(255, 255, 255), TextAlign::CENTER, "Voice");  
-      it.printf(64, 96, id(font_small), Color(255, 255, 255), TextAlign::CENTER, "Assistant");
+      // Bright test pattern that should be very visible
+      it.fill(Color(255, 0, 0));  // Bright red background
+      
+      // Large white rectangle in center
+      it.filled_rectangle(32, 32, 64, 64, Color(255, 255, 255));
+      
+      // Black text on white background
+      it.printf(64, 50, id(font_small), Color(0, 0, 0), TextAlign::CENTER, "TEST");
+      it.printf(64, 70, id(font_small), Color(0, 0, 0), TextAlign::CENTER, "DISPLAY");
 
 # Font definitions for text display on screen
 # Google Fonts are downloaded automatically during compilation
