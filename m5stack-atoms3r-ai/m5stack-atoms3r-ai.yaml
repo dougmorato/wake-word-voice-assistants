@@ -1,6 +1,10 @@
 # =============================================================================
 # M5Stack AtomS3R-AI Voice Assistant Configuration
 # =============================================================================
+# Configuration Version: 2.1.0
+# Last Updated: 2025-01-09
+# Git Repository: https://github.com/dougmorato/wake-word-voice-assistants
+# 
 # This configuration turns your M5Stack AtomS3R-AI into a smart voice assistant
 # that works with Home Assistant. It includes:
 # - Voice wake word detection ("okay nabu", "hey mycroft", "hey jarvis")
@@ -66,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.0.0"
+    version: "2.1.0-avatar-display"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -165,24 +169,24 @@ i2s_audio:
 #     mic_gain: 42DB
 
 # Microphone configuration - captures your voice commands
-# Pin verified from M5Stack official AtomS3R-AI pinmap
+# Temporary: Using internal ADC while ES8311 codec is disabled
 microphone:
   - platform: i2s_audio
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
     adc_type: internal      # Use ESP32-S3 internal ADC (temporary workaround)
-    sample_rate: 16000      # Must match codec sample rate
-    bits_per_sample: 16bit  # Must match codec bit depth
+    adc_pin: GPIO7          # Use GPIO7 for internal ADC input
+    sample_rate: 16000      # Sample rate for voice
+    bits_per_sample: 16bit  # Audio bit depth
 
 # Speaker configuration - plays assistant responses and notifications
-# Pin verified from M5Stack official AtomS3R-AI pinmap
+# Temporary: Using internal DAC while ES8311 codec is disabled
 speaker:
   - platform: i2s_audio
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec (official pinmap)
     dac_type: internal      # Use ESP32-S3 internal DAC (temporary workaround)
+    dac_pin: GPIO5          # Use GPIO5 for internal DAC output
     sample_rate: 16000      # Sample rate for voice
     bits_per_sample: 16bit  # Audio bit depth
     channel: mono           # Single channel audio
@@ -488,6 +492,14 @@ binary_sensor:
 
 # Network and device information sensors
 text_sensor:
+  # Configuration version information - shows which version is running
+  - platform: template
+    name: "Configuration Version"
+    id: config_version
+    entity_category: diagnostic
+    icon: "mdi:information-outline"
+    lambda: |-
+      return {"Config v2.1.0 - Simple Avatar Display & ES8311 Workaround"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
