@@ -157,11 +157,12 @@ i2s_audio:
 audio_dac:
   - platform: es8311
     id: es8311_codec
+    address: 0x18           # Explicit I2C address for ES8311 codec
     sample_rate: 16000      # Audio quality - 16kHz is optimal for voice
     bits_per_sample: 16bit  # Audio depth - 16-bit provides good quality
     use_mclk: false         # Atomic Echo Base doesn't use master clock
     use_microphone: true    # Enable microphone input
-    mic_gain: 0DB           # Microphone sensitivity (0DB = no extra gain)
+    mic_gain: 42DB          # Microphone sensitivity (42DB = default gain)
 
 # Microphone configuration - captures your voice commands
 # Pin verified from M5Stack official AtomS3R-AI pinmap

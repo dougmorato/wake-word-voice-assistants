@@ -1,0 +1,83 @@
+esphome:
+  name: s3rai00-test
+  friendly_name: S3RAI00 Test
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 8MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG  # Enable detailed logging
+
+api:
+  encryption:
+    key: "UpwoAALRUfuqRBr0zvzy4Rz7wikT6/d2nzB6ANtvg2Y="
+
+ota:
+  - platform: esphome
+    password: "19851a15a19c7df364596f731b1f83b0"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "S3RAI00-Test Fallback"
+    password: "d0UgK7prnTbI"
+
+captive_portal:
+
+# Test I2C bus
+i2c:
+  sda: GPIO38
+  scl: GPIO39
+  scan: true  # This will show detected I2C devices in logs
+
+# Test SPI bus for display
+spi:
+  - id: lcd_spi
+    clk_pin: GPIO15
+    mosi_pin: GPIO21
+
+# Test basic display
+display:
+  - platform: st7789v
+    id: atoms3r_lcd
+    cs_pin: GPIO14
+    dc_pin: GPIO42
+    reset_pin: GPIO48
+    data_rate: 40MHz
+    model: CUSTOM
+    width: 128
+    height: 128
+    offset_width: 0
+    offset_height: 32
+    lambda: |-
+      it.fill(Color::RED);
+      it.print(64, 64, id(default_font), Color::WHITE, TextAlign::CENTER, "TEST OK");
+
+font:
+  - id: default_font
+    file: "gfonts://Roboto"
+    size: 12
+
+# Test button
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO41
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Test Button"
+    on_press:
+      - logger.log: "Button pressed!"
