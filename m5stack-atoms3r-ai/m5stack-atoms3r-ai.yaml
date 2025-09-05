@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.5-static-fix"
+    version: "2.2.0-backlight-audio-fix"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -78,6 +78,7 @@ esphome:
       # Set initial voice assistant state and update display
       - lambda: |-
           id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+      - light.turn_on: display_backlight  # Ensure backlight is on at startup
       - component.update: atoms3r_lcd
 
 # ESP32-S3 microcontroller configuration
@@ -170,6 +171,8 @@ audio_dac:
     bits_per_sample: 16bit  # Standard bit depth
     use_mclk: false         # Atomic Echo Base uses I2S without MCLK
     use_microphone: true    # Enable microphone functionality
+    # Audio power management to reduce static
+    mic_gain: 0DB           # Start with no microphone gain to reduce noise
 
 # Microphone configuration - captures your voice commands
 # Uses the ES8311 codec on the Atomic Echo Base for high-quality audio input
@@ -503,7 +506,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.5 - Static Fix & Display Update"};
+      return {"Config v2.2.0 - Backlight & Audio Fix"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
@@ -616,6 +619,22 @@ image:
     resize: 128x128
     type: RGB
     transparency: alpha_channel
+
+# Backlight control for display visibility - M5Stack AtomS3R-AI uses PWM for brightness control
+output:
+  - platform: ledc
+    pin: GPIO16               # LCD_BL - Backlight pin from M5Stack pinmap
+    id: backlight_pwm
+    frequency: 1000Hz         # PWM frequency for smooth brightness control
+
+# Display backlight - allows brightness control and ensures display is visible
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    name: "Display Backlight"
+    id: display_backlight
+    restore_mode: RESTORE_DEFAULT_ON  # Turn on backlight by default
+    default_transition_length: 250ms  # Smooth brightness transitions
 
 # LCD display configuration - ST7789V controller with 128x128 resolution
 # Pin configuration verified from M5Stack official AtomS3R-AI pinmap
