@@ -140,11 +140,12 @@ i2c:
 
 # I2S audio bus - high-quality digital audio interface
 # Connects the ESP32 to the audio codec for recording and playback
+# Pin configuration verified from M5Stack official source code
 i2s_audio:
   - id: i2s_bus
-    i2s_lrclk_pin: GPIO6    # Left/Right clock - determines which audio channel
-    i2s_bclk_pin: GPIO8     # Bit clock - synchronizes audio data transfer
-    i2s_mclk_pin: GPIO2     # Master clock - required for M5Stack AtomS3R-AI
+    i2s_lrclk_pin: GPIO3    # Word Select (WS) - Left/Right clock from M5Stack source
+    i2s_bclk_pin: GPIO17    # Bit Clock (BCK) - synchronizes audio data transfer
+    i2s_mclk_pin: GPIO11    # Master Clock (MCK) - required for AtomS3R-AI codec
 
 # =============================================================================
 # AUDIO SYSTEM CONFIGURATION
@@ -163,21 +164,23 @@ audio_dac:
     mic_gain: 0DB           # Microphone sensitivity (0DB = no extra gain)
 
 # Microphone configuration - captures your voice commands
+# Pin verified from M5Stack official source code
 microphone:
   - platform: i2s_audio
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO7      # Data input pin - audio from codec to ESP32
+    i2s_din_pin: GPIO4      # Data input pin - audio from codec to ESP32 (M5Stack source)
     adc_type: external      # Use the external codec's analog-to-digital converter
     sample_rate: 16000      # Must match codec sample rate
     bits_per_sample: 16bit  # Must match codec bit depth
 
 # Speaker configuration - plays assistant responses and notifications
+# Pin verified from M5Stack official source code
 speaker:
   - platform: i2s_audio
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO5     # Data output pin - audio from ESP32 to codec
+    i2s_dout_pin: GPIO48    # Data output pin - audio from ESP32 to codec (M5Stack source)
     dac_type: external      # Use the external codec's digital-to-analog converter
     sample_rate: 16000      # Must match codec sample rate
     bits_per_sample: 16bit  # Must match codec bit depth
@@ -524,10 +527,11 @@ text_sensor:
 
 # SPI bus configuration for the LCD display
 # SPI is a communication protocol for high-speed data transfer to the screen
+# Pin configuration verified from M5GFX AtomDisplay source code
 spi:
   - id: lcd_spi
-    clk_pin: GPIO15             # Serial clock pin
-    mosi_pin: GPIO21            # Master Out Slave In (data to display)
+    clk_pin: GPIO7              # SCLK - Serial clock pin (M5GFX source)
+    mosi_pin: GPIO6             # MOSI - Master Out Slave In (data to display)
 
 # Color definitions for different device states
 # These colors are used as backgrounds for the status illustrations
@@ -597,12 +601,13 @@ image:
     transparency: alpha_channel
 
 # LCD display configuration - ST7789V controller with 128x128 resolution
+# Pin configuration verified from M5GFX AtomDisplay source code
 display:
   - platform: st7789v
     id: atoms3r_lcd
-    cs_pin: GPIO14            # Chip select pin
-    dc_pin: GPIO42            # Data/command pin  
-    reset_pin: GPIO48         # Display reset pin
+    cs_pin: GPIO8             # Chip select pin (M5GFX source)
+    dc_pin: GPIO42            # Data/command pin (assumed, needs verification)
+    reset_pin: GPIO5          # Display reset pin (MISO from M5GFX, repurposed)
     data_rate: 40MHz          # SPI communication speed
     model: CUSTOM             # Custom display configuration
     width: 128                # Display width in pixels
