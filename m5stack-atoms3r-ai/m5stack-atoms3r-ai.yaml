@@ -631,74 +631,28 @@ display:
     offset_height: 32         # Vertical offset for display alignment
     update_interval: never    # Manual updates only (controlled by scripts)
     # Different pages (screens) shown during different states
-    # Simple avatar display with animated face based on voice assistant state
+    # Simple avatar display - basic test pattern to verify display is working
     lambda: |-
-      // Clear screen with background color based on state
-      Color bg_color;
-      int eye_size = 8;
-      int mouth_width = 20;
-      int mouth_height = 8;
+      // Fill with bright color to verify display is working
+      it.fill(Color::BLUE);
       
-      // Background colors and expressions for different states
-      if (id(voice_assistant_phase) == ${voice_assist_listening_phase_id}) {
-        bg_color = Color(0, 150, 255);  // Blue when listening
-        eye_size = 12;  // Bigger eyes when listening
-      } else if (id(voice_assistant_phase) == ${voice_assist_thinking_phase_id}) {
-        bg_color = Color(255, 165, 0);  // Orange when thinking
-        eye_size = 6;   // Smaller eyes when processing
-      } else if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
-        bg_color = Color(0, 255, 0);    // Green when speaking
-        mouth_height = 15;  // Bigger mouth when talking
-      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
-        bg_color = Color(255, 0, 0);    // Red on error
-        eye_size = 4;   // Small eyes for error
-      } else if (id(voice_assistant_phase) == ${voice_assist_muted_phase_id}) {
-        bg_color = Color::BLACK;        // Black when muted
-        eye_size = 2;   // Tiny eyes when muted
-      } else {
-        bg_color = Color(100, 100, 255); // Light blue when idle
-      }
+      // Draw simple test pattern
+      int center_x = it.get_width() / 2;   // 64
+      int center_y = it.get_height() / 2;  // 64
       
-      it.fill(bg_color);
+      // Large white circle for visibility
+      it.filled_circle(center_x, center_y, 40, Color::WHITE);
+      it.circle(center_x, center_y, 40, Color::BLACK);
       
-      // Draw simple avatar face
-      int center_x = it.get_width() / 2;
-      int center_y = it.get_height() / 2;
+      // Simple eyes
+      it.filled_circle(center_x - 12, center_y - 8, 6, Color::BLACK);
+      it.filled_circle(center_x + 12, center_y - 8, 6, Color::BLACK);
       
-      // Face circle (head)
-      it.filled_circle(center_x, center_y, 45, Color::WHITE);
-      it.circle(center_x, center_y, 45, Color::BLACK);
+      // Simple mouth
+      it.filled_rectangle(center_x - 10, center_y + 10, 20, 3, Color::BLACK);
       
-      // Eyes
-      it.filled_circle(center_x - 15, center_y - 10, eye_size, Color::BLACK);
-      it.filled_circle(center_x + 15, center_y - 10, eye_size, Color::BLACK);
-      
-      // Mouth - varies based on state
-      if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
-        // Open mouth when speaking
-        it.filled_rectangle(center_x - mouth_width/2, center_y + 10, mouth_width, mouth_height, Color::BLACK);
-      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
-        // Sad mouth for errors
-        it.circle(center_x, center_y + 20, 10, Color::BLACK);
-      } else {
-        // Small smile for other states
-        it.filled_rectangle(center_x - mouth_width/2, center_y + 15, mouth_width, 3, Color::BLACK);
-      }
-      
-      // Show status text at bottom
-      if (id(voice_assistant_phase) == ${voice_assist_listening_phase_id}) {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Listening...");
-      } else if (id(voice_assistant_phase) == ${voice_assist_thinking_phase_id}) {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Thinking...");
-      } else if (id(voice_assistant_phase) == ${voice_assist_replying_phase_id}) {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Speaking...");
-      } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Error");
-      } else if (id(voice_assistant_phase) == ${voice_assist_muted_phase_id}) {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Muted");
-      } else {
-        it.printf(center_x, 110, id(font_small), Color::WHITE, TextAlign::CENTER, "Ready");
-      }
+      // Test text
+      it.printf(center_x, center_y + 30, id(font_small), Color::BLACK, TextAlign::CENTER, "HELLO");
 
 # Font definitions for text display on screen
 # Google Fonts are downloaded automatically during compilation
