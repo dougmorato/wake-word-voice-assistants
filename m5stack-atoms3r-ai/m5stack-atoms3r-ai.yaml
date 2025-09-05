@@ -70,7 +70,7 @@ esphome:
   # Device information that appears in Home Assistant
   project:
     name: "M5Stack.AtomS3R-AI"
-    version: "2.1.0-avatar-display"
+    version: "2.1.1-es8311-defaults"
   # Actions to perform when the device starts up
   on_boot:
     priority: 600
@@ -156,42 +156,36 @@ i2s_audio:
 # =============================================================================
 # The audio system handles voice recording, playback, and processing
 
-# Note: ES8311 codec temporarily disabled due to MCLK configuration issues
-# Using direct I2S audio without external codec for now
-# audio_dac:
-#   - platform: es8311
-#     id: es8311_codec
-#     address: 0x18
-#     sample_rate: 16000
-#     bits_per_sample: 16bit
-#     use_mclk: false
-#     use_microphone: true
-#     mic_gain: 42DB
+# ES8311 audio codec - converts between digital and analog audio
+# This chip is on the Atomic Echo Base and handles both microphone and speaker
+audio_dac:
+  - platform: es8311
+    id: es8311_codec
+    address: 0x18           # I2C address for ES8311 codec
+    use_mclk: false         # Atomic Echo Base doesn't provide MCLK
+    use_microphone: true    # Enable microphone input
+    # Let ESPHome use default sample rate and bit depth to avoid MCLK calculation issues
 
 # Microphone configuration - captures your voice commands
-# Temporary: Using internal ADC while ES8311 codec is disabled
+# Uses the ES8311 codec on the Atomic Echo Base for high-quality audio input
 microphone:
   - platform: i2s_audio
     id: atoms3r_mic
     i2s_audio_id: i2s_bus
-    adc_type: internal      # Use ESP32-S3 internal ADC (temporary workaround)
-    adc_pin: GPIO7          # Use GPIO7 for internal ADC input
-    sample_rate: 16000      # Sample rate for voice
-    bits_per_sample: 16bit  # Audio bit depth
+    i2s_din_pin: GPIO7      # ASDOUT - audio from codec to ESP32 (official pinmap)
+    adc_type: external      # Use the ES8311 codec's analog-to-digital converter
+    # Use default sample rate and bit depth to match codec defaults
 
 # Speaker configuration - plays assistant responses and notifications
-# Temporary: Using internal DAC while ES8311 codec is disabled
+# Uses the ES8311 codec on the Atomic Echo Base for high-quality audio output
 speaker:
   - platform: i2s_audio
     id: atoms3r_speaker
     i2s_audio_id: i2s_bus
-    dac_type: internal      # Use ESP32-S3 internal DAC (temporary workaround)
-    dac_pin: GPIO5          # Use GPIO5 for internal DAC output
-    sample_rate: 16000      # Sample rate for voice
-    bits_per_sample: 16bit  # Audio bit depth
-    channel: mono           # Single channel audio
-    # audio_dac: es8311_codec # Codec temporarily disabled
-    buffer_duration: 60ms   # Audio buffer size
+    i2s_dout_pin: GPIO5     # SD/DSDIN - audio from ESP32 to codec (official pinmap)
+    dac_type: external      # Use the ES8311 codec's digital-to-analog converter
+    audio_dac: es8311_codec # Link to the ES8311 codec component
+    # Use default sample rate, bit depth, and buffer settings to match codec
 
 # =============================================================================
 # VOICE ASSISTANT & MEDIA SYSTEM
@@ -499,7 +493,7 @@ text_sensor:
     entity_category: diagnostic
     icon: "mdi:information-outline"
     lambda: |-
-      return {"Config v2.1.0 - Simple Avatar Display & ES8311 Workaround"};
+      return {"Config v2.1.1 - Avatar Display & ES8311 Default Config"};
   # Last error message - helps with troubleshooting voice assistant issues
   - platform: template
     name: "Last Error"
