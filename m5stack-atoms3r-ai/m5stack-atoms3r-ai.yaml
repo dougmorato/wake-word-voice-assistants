@@ -632,7 +632,6 @@ display:
     offset_width: 0           # Horizontal offset for display alignment
     offset_height: 32         # Vertical offset for display alignment
     update_interval: 1s       # Regular updates to ensure display refresh
-    invert_colors: false      # Try normal colors first (change to true if inverted)
     # Different pages (screens) shown during different states
     # Simple avatar display - basic test pattern to verify display is working
     lambda: |-
